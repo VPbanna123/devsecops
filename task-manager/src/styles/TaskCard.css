@@ -1,0 +1,118 @@
+/**
+ * MEMBER 2: Task Card Styling
+ * 
+ * TODO:
+ * 1. Style task cards beautifully
+ * 2. Add hover effects
+ * 3. Style completed tasks differently
+ * 4. Make cards responsive
+ * 5. Add animations
+ */
+
+.task-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  margin-bottom: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.task-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.task-card.completed {
+  opacity: 0.6;
+}
+
+.task-card.completed .task-text {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 1.1rem;
+}
+
+.task-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #4a90e2;
+}
+
+.task-edit-input {
+  flex: 1;
+  padding: 8px;
+  border: 2px solid #4a90e2;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.delete-btn {
+  padding: 8px 15px;
+  background: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+/* Dark theme support */
+.app.dark .task-card {
+  background: #2a2a2a;
+  color: white;
+}
+
+.app.dark .task-edit-input {
+  background: #1a1a1a;
+  color: white;
+  border-color: #4a90e2;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.task-card {
+  animation: slideIn 0.3s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .task-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .task-text {
+    font-size: 1rem;
+  }
+
+  .delete-btn {
+    padding: 6px 12px;
+    font-size: 1rem;
+  }
+}
