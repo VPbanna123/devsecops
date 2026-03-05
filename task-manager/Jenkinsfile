@@ -1,10 +1,8 @@
-def appImage
-
 pipeline {
   agent any
 
   environment {
-    DOCKER_USER = 'VPbanna123'
+    DOCKER_USER = 'vpbanna123'
     IMAGE_NAME = 'task-manager-app'
     IMAGE_TAG = "${env.BUILD_ID}"
     REGISTRY = "docker.io/${DOCKER_USER}/${IMAGE_NAME}"
@@ -12,27 +10,33 @@ pipeline {
   }
 
   stages {
-    stage('Checkout') {
-      steps {
-        checkout scm
-      }
-    }
-
     stage('Build Docker Image') {
       steps {
-        script {
-          appImage = docker.build("${REGISTRY}:${IMAGE_TAG}", ".")
-        }
+        sh '''
+          if [ -f Dockerfile ]; then
+            BUILD_DIR="."
+          elif [ -f task-manager/Dockerfile ]; then
+            BUILD_DIR="task-manager"
+          else
+            echo "Dockerfile not found in . or task-manager/"
+            exit 1
+          fi
+
+          docker build -t ${REGISTRY}:${IMAGE_TAG} -f ${BUILD_DIR}/Dockerfile ${BUILD_DIR}
+        '''
       }
     }
 
     stage('Push to Docker Hub') {
       steps {
-        script {
-          docker.withRegistry('https://index.docker.io/v1/', 'docker-hub-credentials') {
-            appImage.push()
-            appImage.push('latest')
-          }
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DH_USER', passwordVariable: 'DH_PASS')]) {
+          sh '''
+            echo "${DH_PASS}" | docker login -u "${DH_USER}" --password-stdin
+            docker push ${REGISTRY}:${IMAGE_TAG}
+            docker tag ${REGISTRY}:${IMAGE_TAG} ${REGISTRY}:latest
+            docker push ${REGISTRY}:latest
+            docker logout
+          '''
         }
       }
     }
