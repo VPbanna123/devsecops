@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    pull_policy: missing
+    container_name: task-manager-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=taskmanager
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - task-manager-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-dev:
+    build:
+      context: ./server
+      dockerfile: ../Dockerfile.backend
+    container_name: task-manager-backend-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=taskmanager
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./server:/app:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - task-manager-network
+    command: npm run dev
+
+  task-manager-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: task-manager-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:5000
+    volumes:
+      # Mount source code for live reloading
+      - ./src:/app/src:ro
+      - ./public:/app/public:ro
+    depends_on:
+      - backend-dev
+    restart: unless-stopped
+    networks:
+      - task-manager-network
+    stdin_open: true
+    tty: true
+
+networks:
+  task-manager-network:
+    driver: bridge
+
+volumes:
+  postgres-data-dev:
+    driver: local
